@@ -21,7 +21,8 @@
 -- x Table with product as key and a list of machines that is producing that as value
 require "entity_tick_iterate"
 
-local STEP_BY_STEP = false
+local STEP_BY_STEP = true
+local ONLY_ON_PERFORM = true
 local ROCKET_PART = "rocket-part"
 local RESEARCH = "RESEARCH"
 
@@ -160,6 +161,9 @@ local function removeMachine(entity, outputs)
         return
     end
 
+    if true then
+      out("Check removeMachine method if outputs is not accessible because previous recipe is invalid")
+    end
     if outputs == nil then
         outputs = getOutputsForMachine(entity)
         if not outputs then
@@ -177,13 +181,27 @@ local function removeMachine(entity, outputs)
     end
 end
 
+local DEBUG_STEP_COUNT = 0
+local function DEBUG_STEP(value)
+  if DEBUG_STEP_COUNT < value then
+    out("Debug step " .. value .. " triggered.")
+    return false
+  end
+  if DEBUG_STEP_COUNT == value then
+    out("Debug step " .. value .. " triggered. Increasing.")
+    DEBUG_STEP_COUNT = DEBUG_STEP_COUNT + 1
+    return true
+  end
+  return false
+end
+
 local function checkMachine(entity)
     if not entity.valid then
         return
     end
     if entity.type == "assembling-machine" or entity.type == "furnace" then
         local pos = txtpos(entity.position)
-        -- out("Checking " .. entity.type .. " at " .. pos)
+        out("Checking " .. entity.type .. " at " .. pos)
         if not machineRecipes[pos] then
             addMachine(entity)
         else
@@ -192,7 +210,10 @@ local function checkMachine(entity)
             if entity.type == "furnace" and entity.recipe == nil then
                 inentity = entity.previous_recipe
             end
-            -- out("Already exists, comparing " .. tostring(inentity) .. " with stored " .. tostring(intable))
+            if DEBUG_STEP(1) then
+              return
+            end
+            out("Already exists, comparing " .. tostring(inentity) .. " with stored " .. tostring(intable))
             if intable == inentity then -- compare names instead of tables?
                 return
             end
@@ -200,12 +221,18 @@ local function checkMachine(entity)
             local current = inentity
             machineRecipes[pos] = { entity = entity, recipe = inentity }
             if previous then
+                if DEBUG_STEP(2) then
+                  return
+                end
                 removeMachine(entity, previous.products)
                 previous = previous.name
             end
+            if DEBUG_STEP(3) then
+              return
+            end
             if current then
                 addMachine(entity)
-                current = current.name
+                current = current.name--- after 0.5, 148.5 total freeze
             end
             if entity.type == "assembling-machine" then
               out("[What is missing] Detected recipe change at " .. pos .. " from " .. tostring(previous) .. " to " .. tostring(current))
@@ -491,7 +518,7 @@ local function onTick()
             checkMachine(entity)
         end
     end
-    if 0 == game.tick % update_interval then
+    if not ONLY_ON_PERFORM and 0 == game.tick % update_interval then
         for k, player in pairs(game.players) do
             perform(player)
         end

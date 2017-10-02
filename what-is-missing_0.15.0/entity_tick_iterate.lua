@@ -14,7 +14,7 @@ end
 local function scan()
     local useNext = false
     for surfaceIndex, surface in pairs(game.surfaces) do
---      out(surfaceIndex .. " name " .. surface.name .. " useNext? " .. tostring(useNext))
+      out(surfaceIndex .. " name " .. surface.name .. " useNext? " .. tostring(useNext))
         if surfacesToScanIndex == nil then
             return surfaceIndex
         end
@@ -74,7 +74,7 @@ function entityTickIterateNext()
         if surfaceIndex then
 --          out("Scan " .. typeToScan .. " on " .. surfaceIndex .. " at tick " .. game.tick)
             entitiesToScan = game.surfaces[surfaceIndex].find_entities_filtered({type = typeToScan})
-            -- out("Using surfaceIndex " .. tostring(surfaceIndex) .. " contains " .. #entitiesToScan)
+            out("Using surfaceIndex " .. tostring(surfaceIndex) .. " contains " .. #entitiesToScan)
             index, entity = next(entitiesToScan, index)
         else
             entitiesToScanIndex = nil
@@ -83,7 +83,7 @@ function entityTickIterateNext()
             else
                 typeToScan = "assembling-machine"
             end
-            -- out("Switching type to " .. typeToScan)
+            out("Switching type to " .. typeToScan)
             return nil
         end
     end
